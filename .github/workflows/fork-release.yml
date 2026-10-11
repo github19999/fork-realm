@@ -58,8 +58,9 @@ jobs:
       - name: Pin compatible dependencies
         run: cargo update -p lightws --precise 0.6.12 && cargo update -p tokio --precise 1.44.1
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.88.0
+        uses: dtolnay/rust-toolchain@nightly
         with:
+          toolchain: nightly-2025-08-20
           targets: ${{ matrix.target }}
       - name: Install cross
         if: matrix.use_cross
