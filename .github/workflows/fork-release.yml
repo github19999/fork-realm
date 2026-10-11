@@ -55,17 +55,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
-      - name: Patch lightws BorrowedBuf generic for current API
-        shell: bash
-        run: |
-          cargo update -p lightws --precise 0.6.12
-          cargo update -p tokio --precise 1.44.1
-          cargo fetch
-          find "$HOME/.cargo/registry/src" -path '*/lightws-0.6.12/src/stream/read.rs' -exec sed -i "s/BorrowedBuf<'_>/BorrowedBuf<'_, u8>/" {} +
+      - name: Pin compatible dependencies
+        run: cargo update -p lightws --precise 0.6.12 && cargo update -p tokio --precise 1.44.1
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@nightly
         with:
-          toolchain: nightly-2025-08-20
+          toolchain: nightly-2024-10-01
           targets: ${{ matrix.target }}
       - name: Install cross
         if: matrix.use_cross
