@@ -1,10 +1,10 @@
-name: Fork release assets
+name: Build fork release asset
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Existing release tag to add the compiled files to
+        description: Existing release tag to add the compiled Linux file to
         required: true
         default: v2.9.2
 
@@ -13,71 +13,23 @@ permissions:
 
 jobs:
   build:
-    name: Build ${{ matrix.target }}
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-gnu
-            runner: ubuntu-22.04
-            use_cross: false
-            binary: realm
-          - target: x86_64-unknown-linux-musl
-            runner: ubuntu-22.04
-            use_cross: true
-            binary: realm
-          - target: aarch64-unknown-linux-gnu
-            runner: ubuntu-22.04
-            use_cross: true
-            binary: realm
-          - target: aarch64-unknown-linux-musl
-            runner: ubuntu-22.04
-            use_cross: true
-            binary: realm
-          - target: x86_64-pc-windows-gnu
-            runner: ubuntu-22.04
-            use_cross: true
-            binary: realm.exe
-          - target: x86_64-pc-windows-msvc
-            runner: windows-latest
-            use_cross: false
-            binary: realm.exe
-          - target: x86_64-apple-darwin
-            runner: macos-latest
-            use_cross: false
-            binary: realm
-          - target: aarch64-apple-darwin
-            runner: macos-latest
-            use_cross: false
-            binary: realm
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
-      - name: Pin compatible dependencies
-        run: cargo update -p lightws --precise 0.6.12 && cargo update -p tokio --precise 1.44.1
-      - name: Install Rust toolchain
+      - name: Install Rust nightly
         uses: dtolnay/rust-toolchain@nightly
-        with:
-          toolchain: nightly-2024-10-01
-          targets: ${{ matrix.target }}
-      - name: Install cross
-        if: matrix.use_cross
-        run: cargo install cross --git https://github.com/cross-rs/cross
-      - name: Build with cross
-        if: matrix.use_cross
-        run: cross build --release --no-default-features --features default-ring --target ${{ matrix.target }}
-      - name: Build natively
-        if: ${{ !matrix.use_cross }}
-        run: cargo build --release --no-default-features --features default-ring --target ${{ matrix.target }}
+      - name: Update the websocket dependency
+        run: cargo update -p lightws --precise 0.6.14
+      - name: Build Linux x86_64 binary
+        run: cargo build --release --no-default-features --features default-ring --target x86_64-unknown-linux-gnu
       - name: Package binary
-        shell: bash
-        run: tar -C target/${{ matrix.target }}/release -czf realm-${{ matrix.target }}.tar.gz ${{ matrix.binary }}
+        run: tar -C target/x86_64-unknown-linux-gnu/release -czf realm-x86_64-unknown-linux-gnu.tar.gz realm
       - name: Upload to this fork's Release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ inputs.tag }}
-          files: realm-${{ matrix.target }}.tar.gz
+          files: realm-x86_64-unknown-linux-gnu.tar.gz
