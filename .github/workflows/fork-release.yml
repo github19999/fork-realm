@@ -58,7 +58,7 @@ jobs:
       - name: Pin compatible lightws version
         run: cargo update -p lightws --precise 0.6.12
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@1.89.0
+        uses: dtolnay/rust-toolchain@1.88.0
         with:
           targets: ${{ matrix.target }}
       - name: Install cross
