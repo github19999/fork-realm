@@ -55,6 +55,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ inputs.tag }}
+      - name: Pin compatible lightws version
+        run: cargo update -p lightws --precise 0.6.12
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
